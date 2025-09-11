@@ -34,6 +34,14 @@
             from { transform: scale(0.9); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
+        /* 드래그 커서 스타일 */
+        #subject-selector {
+            cursor: grab;
+            user-select: none; /* 드래그 시 텍스트 선택 방지 */
+        }
+        #subject-selector.grabbing {
+            cursor: grabbing;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -144,13 +152,6 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
-        // 중요: "auth/unauthorized-domain" 오류가 계속 발생하면,
-        // 이 앱이 실행되는 웹사이트의 도메인(주소)을 직접 Firebase 프로젝트에 추가해야 합니다.
-        // 방법:
-        // 1. Firebase 콘솔(console.firebase.google.com)로 이동
-        // 2. 프로젝트 선택 -> Authentication -> 'Settings' 탭
-        // 3. 'Authorized domains' (승인된 도메인) 섹션까지 아래로 스크롤
-        // 4. 'Add domain' 버튼 클릭 후, 현재 웹사이트의 도메인을 추가하고 저장하세요.
         const firebaseConfig = {
             apiKey: "AIzaSyBeTzTZX7mRUAI-ePgV46hmaRPZvlsdFyQ",
             authDomain: "wasted-51dd3.firebaseapp.com",
@@ -168,7 +169,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             // --- 데이터 (실제 앱에서는 서버에서 가져옴) ---
-            const subjects = ['전체', '국어', '수학', '영어', '빅데이터', '과학', '사회', '코딩'];
+            const subjects = ['전체', '국어', '수학', '영어', '빅데이터', '과학', '사회', '코딩', '역사', '지리'];
             let posts = [
                 { id: 1, subject: '수학', user: 'math_god', userImg: 'https://placehold.co/40x40/FFC0CB/000000?text=M', title: '이차함수 문제 도와주세요!', content: '사진 속 3번 문제 풀이 과정이 이해가 안 돼요. 꼭짓점 좌표를 어떻게 구하는 건가요?', image: 'https://placehold.co/600x400/D1E5F0/4361EE?text=Math+Problem', hearts: 23, comments: 5 },
                 { id: 2, subject: '영어', user: 'eng_master', userImg: 'https://placehold.co/40x40/C2F0C2/000000?text=E', title: '관계대명사 that, which 차이점', content: '계속적 용법에서 that을 쓸 수 없다고 배웠는데, 왜 그런 건가요? 예문과 함께 설명해주실 분 계신가요?', image: null, hearts: 15, comments: 8 },
@@ -177,6 +178,7 @@
             ];
 
             // --- DOM 요소 ---
+            const subjectSelector = document.getElementById('subject-selector');
             const loginContainer = document.getElementById('login-container');
             const appContainer = document.getElementById('app-container');
             const loginBtn = document.getElementById('login-btn');
@@ -184,14 +186,10 @@
             const errorModal = document.getElementById('error-modal');
             const errorMessage = document.getElementById('error-message');
             const closeErrorModalBtn = document.getElementById('close-error-modal');
-            
             const userIdSpan = document.getElementById('user-id');
             const userImg = document.getElementById('user-img');
-            
             const profileModalUserId = document.getElementById('profile-modal-userid');
             const profileModalUserImg = document.getElementById('profile-modal-img');
-
-            const subjectSelector = document.getElementById('subject-selector');
             const feed = document.getElementById('feed');
             const createPostBtn = document.getElementById('create-post-btn');
             const postModal = document.getElementById('post-modal');
@@ -206,6 +204,38 @@
             let activeSubject = '전체';
             let newPostId = posts.length + 1;
             
+            // --- 과목 선택창 드래그 스크롤 기능 ---
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            if(subjectSelector) {
+                subjectSelector.addEventListener('mousedown', (e) => {
+                    isDown = true;
+                    subjectSelector.classList.add('grabbing');
+                    startX = e.pageX - subjectSelector.offsetLeft;
+                    scrollLeft = subjectSelector.scrollLeft;
+                });
+
+                subjectSelector.addEventListener('mouseleave', () => {
+                    isDown = false;
+                    subjectSelector.classList.remove('grabbing');
+                });
+
+                subjectSelector.addEventListener('mouseup', () => {
+                    isDown = false;
+                    subjectSelector.classList.remove('grabbing');
+                });
+
+                subjectSelector.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    e.preventDefault();
+                    const x = e.pageX - subjectSelector.offsetLeft;
+                    const walk = (x - startX) * 1.5; // 스크롤 감도 조절
+                    subjectSelector.scrollLeft = scrollLeft - walk;
+                });
+            }
+
             // --- 오류 모달 함수 ---
             function showErrorModal(message) {
                 errorMessage.textContent = message;
@@ -218,10 +248,8 @@
                     loginContainer.classList.add('hidden');
                     appContainer.classList.remove('hidden');
                     appContainer.classList.add('flex');
-
                     userIdSpan.textContent = user.displayName || 'User';
                     userImg.src = user.photoURL || 'https://placehold.co/40x40/E2E8F0/4A5568?text=P';
-
                     renderSubjects();
                     renderPosts();
                 } else {
@@ -261,8 +289,10 @@
                 subjects.forEach(subject => {
                     const button = document.createElement('button');
                     button.textContent = subject;
-                    button.className = `px-4 py-2 rounded-full text-sm font-semibold transition-colors ${subject === activeSubject ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
-                    button.onclick = () => {
+                    button.className = `px-4 py-2 rounded-full text-sm font-semibold transition-colors flex-shrink-0 ${subject === activeSubject ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
+                    button.onclick = (e) => {
+                         // 드래그가 아닌 클릭 이벤트를 구분하기 위함
+                        if (Math.abs(subjectSelector.scrollLeft - scrollLeft) > 5) return;
                         activeSubject = subject;
                         renderSubjects();
                         renderPosts();
