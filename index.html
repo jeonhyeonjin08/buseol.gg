@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학습 공유 앱</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* 스크롤바 숨기기 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+        /* 피드 스크롤 스냅 */
+        .feed-container {
+            scroll-snap-type: y mandatory;
+            height: calc(100vh - 112px); /* 헤더와 과목 선택 영역 높이를 제외 */
+        }
+        .feed-item {
+            scroll-snap-align: start;
+        }
+        .animate-scale-up {
+            animation: scaleUp 0.3s ease-out forwards;
+        }
+        @keyframes scaleUp {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- 로그인 화면 -->
+    <div id="login-container" class="max-w-md mx-auto h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
+        <h1 class="text-4xl font-bold text-blue-600 mb-4">Q-study</h1>
+        <p class="text-gray-600 mb-10">학습 질문을 공유하고 함께 성장하세요.</p>
+        <button id="login-btn" class="flex items-center justify-center w-full max-w-xs bg-white border border-gray-300 rounded-lg shadow-md px-6 py-3 text-sm font-medium text-gray-800 hover:bg-gray-50 transition-colors">
+            <svg class="w-5 h-5 mr-4" viewBox="0 0 48 48"><path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l8.35 6.48C12.73 13.72 17.93 9.5 24 9.5z"></path><path fill="#34A853" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6.02C43.51 39.84 46.98 32.95 46.98 24.55z"></path><path fill="#FBBC05" d="M10.91 28.7A14.9 14.9 0 0 1 9.5 24c0-1.45.22-2.85.61-4.18l-8.35-6.48A24.01 24.01 0 0 0 0 24c0 4.14 1.04 7.97 2.82 11.27l8.09-6.57z"></path><path fill="#EA4335" d="M24 48c6.48 0 11.93-2.13 15.89-5.82l-7.73-6.02c-2.15 1.45-4.92 2.3-8.16 2.3-6.07 0-11.27-4.22-13.19-9.92L2.56 34.78C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
+            <span>Google 계정으로 로그인</span>
+        </button>
+    </div>
+
+    <!-- 메인 앱 화면 (초기에는 숨김) -->
+    <div id="app-container" class="max-w-md mx-auto h-screen bg-white shadow-lg overflow-hidden flex-col hidden">
+
+        <!-- 1. 상단 헤더 -->
+        <header class="flex justify-between items-center p-4 border-b bg-white z-10">
+            <h1 class="text-xl font-bold text-blue-600">Q-study</h1>
+            <div id="profile-button" class="flex items-center space-x-2 cursor-pointer">
+                <span id="user-id" class="font-semibold text-gray-700 truncate max-w-[100px]"></span>
+                <img id="user-img" src="https://placehold.co/40x40/E2E8F0/4A5568?text=P" alt="프로필 사진" class="w-10 h-10 rounded-full">
+            </div>
+        </header>
+
+        <!-- 2. 과목 선택 스와이프 메뉴 -->
+        <nav class="bg-white border-b sticky top-0 z-10">
+            <div id="subject-selector" class="flex space-x-4 p-3 overflow-x-auto no-scrollbar whitespace-nowrap">
+                <!-- JavaScript로 과목 버튼 생성 -->
+            </div>
+        </nav>
+
+        <!-- 3. 메인 피드 (스와이프 가능) -->
+        <main id="feed" class="flex-1 overflow-y-auto feed-container bg-gray-50">
+            <!-- JavaScript로 게시물 생성 -->
+        </main>
+        
+        <!-- 4. 게시물 작성 버튼 (플로팅) -->
+        <button id="create-post-btn" class="fixed bottom-6 right-1/2 translate-x-[calc(100%+1rem)] md:translate-x-[11rem] w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-transform transform hover:scale-105">
+            <i class="fa-solid fa-plus text-2xl"></i>
+        </button>
+    </div>
+
+    <!-- 5. 새 게시물 작성 모달 -->
+    <div id="post-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative animate-scale-up">
+            <button id="close-post-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+                <i class="fa-solid fa-times text-2xl"></i>
+            </button>
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">새 질문 올리기</h2>
+            <form id="post-form">
+                <input type="text" id="post-title" placeholder="제목을 입력하세요" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required>
+                <textarea id="post-content" placeholder="궁금한 내용을 적어주세요..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 h-40 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required></textarea>
+                <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                     <label for="post-image" class="cursor-pointer text-blue-600 font-medium hover:text-blue-700">
+                        <i class="fa-solid fa-camera mr-2"></i> 사진 첨부
+                    </label>
+                    <input type="file" id="post-image" class="hidden" accept="image/*">
+                    <span id="image-preview" class="text-sm text-gray-500"></span>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg mt-6 hover:bg-blue-700 transition-colors">게시하기</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 6. 프로필 모달 -->
+    <div id="profile-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 relative text-center animate-scale-up">
+             <button id="close-profile-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+                <i class="fa-solid fa-times text-2xl"></i>
+            </button>
+            <img id="profile-modal-img" src="https://placehold.co/80x80/E2E8F0/4A5568?text=P" alt="프로필 사진" class="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-blue-500">
+            <h2 id="profile-modal-userid" class="text-2xl font-bold text-gray-800"></h2>
+            <p class="text-gray-500 mb-6">학습에 대한 열정이 가득!</p>
+            <div class="flex justify-around bg-gray-100 p-4 rounded-lg">
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-blue-600" id="total-hearts">1.2k</p>
+                    <p class="text-sm text-gray-600">총 하트</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-blue-600" id="total-posts">42</p>
+                    <p class="text-sm text-gray-600">게시물</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-blue-600" id="total-comments">315</p>
+                    <p class="text-sm text-gray-600">댓글</p>
+                </div>
+            </div>
+            <button id="logout-btn" class="w-full bg-red-500 text-white font-bold py-2 px-4 rounded-lg mt-6 hover:bg-red-600 transition-colors">로그아웃</button>
+        </div>
+    </div>
+
+    <!-- 7. 오류 메시지 모달 -->
+    <div id="error-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative text-center animate-scale-up">
+            <div class="flex justify-center items-center mx-auto w-12 h-12 rounded-full bg-red-100 mb-4">
+                 <i class="fa-solid fa-exclamation-triangle text-2xl text-red-600"></i>
+            </div>
+            <h2 class="text-xl font-bold mb-2 text-gray-800">오류 발생</h2>
+            <p id="error-message" class="text-gray-600 mb-6"></p>
+            <button id="close-error-modal" class="w-full bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">확인</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // --- Firebase Configuration ---
+        // 중요: "auth/unauthorized-domain" 오류가 계속 발생하면,
+        // 이 앱이 실행되는 웹사이트의 도메인(주소)을 직접 Firebase 프로젝트에 추가해야 합니다.
+        // 방법:
+        // 1. Firebase 콘솔(console.firebase.google.com)로 이동
+        // 2. 프로젝트 선택 -> Authentication -> 'Settings' 탭
+        // 3. 'Authorized domains' (승인된 도메인) 섹션까지 아래로 스크롤
+        // 4. 'Add domain' 버튼 클릭 후, 현재 웹사이트의 도메인을 추가하고 저장하세요.
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeTzTZX7mRUAI-ePgV46hmaRPZvlsdFyQ",
+            authDomain: "wasted-51dd3.firebaseapp.com",
+            projectId: "wasted-51dd3",
+            storageBucket: "wasted-51dd3.appspot.com",
+            messagingSenderId: "227273066378",
+            appId: "1:227273066378:web:2927cb389f2154e4386a73",
+            measurementId: "G-PQ9HRJLGMQ"
+        };
+        
+        // --- Firebase Initialization ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 데이터 (실제 앱에서는 서버에서 가져옴) ---
+            const subjects = ['전체', '국어', '수학', '영어', '빅데이터', '과학', '사회', '코딩'];
+            let posts = [
+                { id: 1, subject: '수학', user: 'math_god', userImg: 'https://placehold.co/40x40/FFC0CB/000000?text=M', title: '이차함수 문제 도와주세요!', content: '사진 속 3번 문제 풀이 과정이 이해가 안 돼요. 꼭짓점 좌표를 어떻게 구하는 건가요?', image: 'https://placehold.co/600x400/D1E5F0/4361EE?text=Math+Problem', hearts: 23, comments: 5 },
+                { id: 2, subject: '영어', user: 'eng_master', userImg: 'https://placehold.co/40x40/C2F0C2/000000?text=E', title: '관계대명사 that, which 차이점', content: '계속적 용법에서 that을 쓸 수 없다고 배웠는데, 왜 그런 건가요? 예문과 함께 설명해주실 분 계신가요?', image: null, hearts: 15, comments: 8 },
+                { id: 3, subject: '빅데이터', user: 'data_dreamer', userImg: 'https://placehold.co/40x40/E6E6FA/000000?text=D', title: '파이썬으로 데이터 크롤링하는 법', content: '웹사이트에서 특정 정보를 가져오고 싶은데, beautifulsoup 라이브러리 사용법이 너무 어렵네요. 기초부터 알려주실 분 찾습니다!', image: 'https://placehold.co/600x400/FFFACD/000000?text=Code+Snippet', hearts: 42, comments: 12 },
+                { id: 4, subject: '국어', user: 'book_lover', userImg: 'https://placehold.co/40x40/F0E68C/000000?text=B', title: '관동별곡 해석이 어려워요', content: '고전 시가는 단어도 어렵고 해석이 잘 안되네요. 이 부분은 현대어로 어떻게 해석해야 자연스러울까요?', image: null, hearts: 8, comments: 3 }
+            ];
+
+            // --- DOM 요소 ---
+            const loginContainer = document.getElementById('login-container');
+            const appContainer = document.getElementById('app-container');
+            const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const errorModal = document.getElementById('error-modal');
+            const errorMessage = document.getElementById('error-message');
+            const closeErrorModalBtn = document.getElementById('close-error-modal');
+            
+            const userIdSpan = document.getElementById('user-id');
+            const userImg = document.getElementById('user-img');
+            
+            const profileModalUserId = document.getElementById('profile-modal-userid');
+            const profileModalUserImg = document.getElementById('profile-modal-img');
+
+            const subjectSelector = document.getElementById('subject-selector');
+            const feed = document.getElementById('feed');
+            const createPostBtn = document.getElementById('create-post-btn');
+            const postModal = document.getElementById('post-modal');
+            const closePostModalBtn = document.getElementById('close-post-modal');
+            const postForm = document.getElementById('post-form');
+            const profileButton = document.getElementById('profile-button');
+            const profileModal = document.getElementById('profile-modal');
+            const closeProfileModalBtn = document.getElementById('close-profile-modal');
+            const postImageInput = document.getElementById('post-image');
+            const imagePreview = document.getElementById('image-preview');
+
+            let activeSubject = '전체';
+            let newPostId = posts.length + 1;
+            
+            // --- 오류 모달 함수 ---
+            function showErrorModal(message) {
+                errorMessage.textContent = message;
+                errorModal.classList.remove('hidden');
+            }
+
+            // --- Authentication Logic ---
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    loginContainer.classList.add('hidden');
+                    appContainer.classList.remove('hidden');
+                    appContainer.classList.add('flex');
+
+                    userIdSpan.textContent = user.displayName || 'User';
+                    userImg.src = user.photoURL || 'https://placehold.co/40x40/E2E8F0/4A5568?text=P';
+
+                    renderSubjects();
+                    renderPosts();
+                } else {
+                    loginContainer.classList.remove('hidden');
+                    appContainer.classList.add('hidden');
+                    appContainer.classList.remove('flex');
+                }
+            });
+
+            const handleGoogleLogin = async () => {
+                try {
+                    await signInWithPopup(auth, provider);
+                } catch (error) {
+                    console.error("Google 로그인 오류:", error);
+                    if (error.code === 'auth/unauthorized-domain') {
+                        showErrorModal('이 앱의 도메인이 Firebase 인증 설정에 등록되지 않았습니다. Firebase 콘솔에서 현재 사이트의 도메인을 직접 추가해야 합니다.');
+                    } else {
+                        showErrorModal(`로그인 중 알 수 없는 오류가 발생했습니다: ${error.message}`);
+                    }
+                }
+            };
+
+            const handleLogout = async () => {
+                try {
+                    await signOut(auth);
+                } catch (error) {
+                    console.error("로그아웃 오류:", error);
+                }
+            };
+            
+            loginBtn.addEventListener('click', handleGoogleLogin);
+            logoutBtn.addEventListener('click', handleLogout);
+
+            // --- 렌더링 함수 ---
+            function renderSubjects() {
+                subjectSelector.innerHTML = '';
+                subjects.forEach(subject => {
+                    const button = document.createElement('button');
+                    button.textContent = subject;
+                    button.className = `px-4 py-2 rounded-full text-sm font-semibold transition-colors ${subject === activeSubject ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
+                    button.onclick = () => {
+                        activeSubject = subject;
+                        renderSubjects();
+                        renderPosts();
+                    };
+                    subjectSelector.appendChild(button);
+                });
+            }
+
+            function renderPosts() {
+                feed.innerHTML = '';
+                const filteredPosts = activeSubject === '전체' ? posts : posts.filter(p => p.subject === activeSubject);
+                
+                if (filteredPosts.length === 0) {
+                    feed.innerHTML = `<div class="text-center p-10 text-gray-500">게시물이 없습니다.</div>`;
+                    return;
+                }
+
+                filteredPosts.slice().reverse().forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'feed-item h-full flex-shrink-0 bg-white border-b flex flex-col p-4';
+                    postElement.innerHTML = `
+                        <div class="flex items-center mb-3">
+                            <img src="${post.userImg}" alt="user" class="w-10 h-10 rounded-full mr-3">
+                            <div>
+                                <p class="font-bold text-gray-800">${post.user}</p>
+                                <p class="text-xs text-gray-500">${post.subject}</p>
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-y-auto no-scrollbar">
+                            <h3 class="text-lg font-bold mb-2 text-gray-900">${post.title}</h3>
+                            <p class="text-gray-700 mb-4 whitespace-pre-wrap">${post.content}</p>
+                            ${post.image ? `<img src="${post.image}" alt="post image" class="rounded-lg w-full object-cover mb-4">` : ''}
+                        </div>
+                        <div class="flex items-center space-x-6 pt-3 mt-auto">
+                            <button class="flex items-center space-x-1 text-gray-600 hover:text-red-500 transition-colors" onclick="toggleHeart(this, ${post.id})">
+                                <i class="fa-regular fa-heart text-xl"></i>
+                                <span class="font-semibold text-sm">${post.hearts}</span>
+                            </button>
+                            <button class="flex items-center space-x-1 text-gray-600 hover:text-blue-500 transition-colors">
+                                <i class="fa-regular fa-comment text-xl"></i>
+                                <span class="font-semibold text-sm">${post.comments}</span>
+                            </button>
+                        </div>
+                    `;
+                    feed.appendChild(postElement);
+                });
+            }
+
+            // --- 이벤트 리스너 ---
+            createPostBtn.addEventListener('click', () => postModal.classList.remove('hidden'));
+            closePostModalBtn.addEventListener('click', () => postModal.classList.add('hidden'));
+            closeErrorModalBtn.addEventListener('click', () => errorModal.classList.add('hidden'));
+
+            profileButton.addEventListener('click', () => {
+                const user = auth.currentUser;
+                if (user) {
+                    profileModalUserImg.src = user.photoURL || 'https://placehold.co/80x80/E2E8F0/4A5568?text=P';
+                    profileModalUserId.textContent = user.displayName || 'User';
+                }
+                profileModal.classList.remove('hidden');
+            });
+            closeProfileModalBtn.addEventListener('click', () => profileModal.classList.add('hidden'));
+            
+            postModal.addEventListener('click', (e) => { if(e.target === postModal) postModal.classList.add('hidden'); });
+            profileModal.addEventListener('click', (e) => { if(e.target === profileModal) profileModal.classList.add('hidden'); });
+            
+            postImageInput.addEventListener('change', () => {
+                imagePreview.textContent = postImageInput.files.length > 0 ? postImageInput.files[0].name : '';
+            });
+
+            postForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const user = auth.currentUser;
+                if (!user) { return; }
+
+                const newPost = {
+                    id: newPostId++,
+                    subject: activeSubject === '전체' ? '기타' : activeSubject,
+                    user: user.displayName || 'Anonymous',
+                    userImg: user.photoURL || 'https://placehold.co/40x40/E2E8F0/4A5568?text=P',
+                    title: document.getElementById('post-title').value,
+                    content: document.getElementById('post-content').value,
+                    image: postImageInput.files.length > 0 ? URL.createObjectURL(postImageInput.files[0]) : null,
+                    hearts: 0,
+                    comments: 0
+                };
+                
+                posts.push(newPost);
+                postModal.classList.add('hidden');
+                postForm.reset();
+                imagePreview.textContent = '';
+                renderPosts();
+
+                setTimeout(() => { feed.scrollTop = 0; }, 100);
+            });
+
+            // --- 글로벌 함수 ---
+            window.toggleHeart = (button, postId) => {
+                const icon = button.querySelector('i');
+                const countSpan = button.querySelector('span');
+                const post = posts.find(p => p.id === postId);
+
+                if (icon.classList.contains('fa-regular')) {
+                    icon.classList.replace('fa-regular', 'fa-solid');
+                    icon.classList.add('text-red-500');
+                    post.hearts++;
+                } else {
+                    icon.classList.replace('fa-solid', 'fa-regular');
+                    icon.classList.remove('text-red-500');
+                    post.hearts--;
+                }
+                countSpan.textContent = post.hearts;
+            };
+        });
+    </script>
+</body>
+</html>
+
