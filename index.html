@@ -56,8 +56,8 @@
         </button>
     </div>
 
-    <!-- 메인 앱 화면 (초기에는 숨김) -->
-    <div id="app-container" class="max-w-md mx-auto h-screen bg-white shadow-lg overflow-hidden flex-col hidden">
+    <!-- 메인 앱 화면 -->
+    <div id="app-container" class="max-w-md mx-auto h-screen bg-white shadow-lg overflow-hidden flex flex-col hidden">
 
         <!-- 1. 상단 헤더 -->
         <header class="flex justify-between items-center p-4 border-b bg-white z-10">
@@ -119,15 +119,15 @@
             <p class="text-gray-500 mb-6">학습에 대한 열정이 가득!</p>
             <div class="flex justify-around bg-gray-100 p-4 rounded-lg">
                 <div class="text-center">
-                    <p class="text-2xl font-bold text-blue-600" id="total-hearts">1.2k</p>
+                    <p class="text-2xl font-bold text-blue-600" id="total-hearts">0</p>
                     <p class="text-sm text-gray-600">총 하트</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-2xl font-bold text-blue-600" id="total-posts">42</p>
+                    <p class="text-2xl font-bold text-blue-600" id="total-posts">0</p>
                     <p class="text-sm text-gray-600">게시물</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-2xl font-bold text-blue-600" id="total-comments">315</p>
+                    <p class="text-2xl font-bold text-blue-600" id="total-comments">0</p>
                     <p class="text-sm text-gray-600">댓글</p>
                 </div>
             </div>
@@ -150,42 +150,37 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        // --- Firebase Configuration ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyBeTzTZX7mRUAI-ePgV46hmaRPZvlsdFyQ",
-            authDomain: "wasted-51dd3.firebaseapp.com",
-            projectId: "wasted-51dd3",
-            storageBucket: "wasted-51dd3.appspot.com",
-            messagingSenderId: "227273066378",
-            appId: "1:227273066378:web:2927cb389f2154e4386a73",
-            measurementId: "G-PQ9HRJLGMQ"
-        };
-        
-        // --- Firebase Initialization ---
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, increment, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- 데이터 (실제 앱에서는 서버에서 가져옴) ---
-            const subjects = ['전체', '국어', '수학', '영어', '빅데이터', '과학', '사회', '코딩', '역사', '지리'];
-            let posts = [
-                { id: 1, subject: '수학', user: 'math_god', userImg: 'https://placehold.co/40x40/FFC0CB/000000?text=M', title: '이차함수 문제 도와주세요!', content: '사진 속 3번 문제 풀이 과정이 이해가 안 돼요. 꼭짓점 좌표를 어떻게 구하는 건가요?', image: 'https://placehold.co/600x400/D1E5F0/4361EE?text=Math+Problem', hearts: 23, comments: 5 },
-                { id: 2, subject: '영어', user: 'eng_master', userImg: 'https://placehold.co/40x40/C2F0C2/000000?text=E', title: '관계대명사 that, which 차이점', content: '계속적 용법에서 that을 쓸 수 없다고 배웠는데, 왜 그런 건가요? 예문과 함께 설명해주실 분 계신가요?', image: null, hearts: 15, comments: 8 },
-                { id: 3, subject: '빅데이터', user: 'data_dreamer', userImg: 'https://placehold.co/40x40/E6E6FA/000000?text=D', title: '파이썬으로 데이터 크롤링하는 법', content: '웹사이트에서 특정 정보를 가져오고 싶은데, beautifulsoup 라이브러리 사용법이 너무 어렵네요. 기초부터 알려주실 분 찾습니다!', image: 'https://placehold.co/600x400/FFFACD/000000?text=Code+Snippet', hearts: 42, comments: 12 },
-                { id: 4, subject: '국어', user: 'book_lover', userImg: 'https://placehold.co/40x40/F0E68C/000000?text=B', title: '관동별곡 해석이 어려워요', content: '고전 시가는 단어도 어렵고 해석이 잘 안되네요. 이 부분은 현대어로 어떻게 해석해야 자연스러울까요?', image: null, hearts: 8, comments: 3 }
-            ];
+            // --- Firebase 설정 ---
+            const firebaseConfig = {
+                apiKey: "AIzaSyBeTzTZX7mRUAI-ePgV46hmaRPZvlsdFyQ",
+                authDomain: "wasted-51dd3.firebaseapp.com",
+                projectId: "wasted-51dd3",
+                storageBucket: "wasted-51dd3.firebasestorage.app",
+                messagingSenderId: "227273066378",
+                appId: "1:227273066378:web:2927cb389f2154e4386a73",
+                measurementId: "G-PQ9HRJLGMQ"
+            };
 
+            // Firebase 초기화
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            const provider = new GoogleAuthProvider();
+            
+            // --- 데이터 ---
+            const subjects = ['전체', '국어', '수학', '영어', '빅데이터', '과학', '사회', '코딩', '역사', '지리'];
+            let posts = []; // Firestore에서 받아온 데이터를 저장할 배열
+            let likedPosts = new Set(); // 현재 세션에서 '하트'를 누른 게시물 ID 저장
+            
             // --- DOM 요소 ---
-            const subjectSelector = document.getElementById('subject-selector');
             const loginContainer = document.getElementById('login-container');
             const appContainer = document.getElementById('app-container');
             const loginBtn = document.getElementById('login-btn');
             const logoutBtn = document.getElementById('logout-btn');
-            const errorModal = document.getElementById('error-modal');
-            const errorMessage = document.getElementById('error-message');
-            const closeErrorModalBtn = document.getElementById('close-error-modal');
+            const subjectSelector = document.getElementById('subject-selector');
             const userIdSpan = document.getElementById('user-id');
             const userImg = document.getElementById('user-img');
             const profileModalUserId = document.getElementById('profile-modal-userid');
@@ -200,10 +195,23 @@
             const closeProfileModalBtn = document.getElementById('close-profile-modal');
             const postImageInput = document.getElementById('post-image');
             const imagePreview = document.getElementById('image-preview');
+            const errorModal = document.getElementById('error-modal');
+            const errorMessage = document.getElementById('error-message');
+            const closeErrorModalBtn = document.getElementById('close-error-modal');
+            const totalHearts = document.getElementById('total-hearts');
+            const totalPosts = document.getElementById('total-posts');
+            const totalComments = document.getElementById('total-comments');
 
             let activeSubject = '전체';
-            let newPostId = posts.length + 1;
             
+            // --- 앱 초기화 (로그인 성공 시 호출) ---
+            function initializeAppUI(user) {
+                userIdSpan.textContent = user.displayName;
+                userImg.src = user.photoURL;
+                renderSubjects();
+                renderPosts();
+            }
+
             // --- 과목 선택창 드래그 스크롤 기능 ---
             let isDown = false;
             let startX;
@@ -216,72 +224,16 @@
                     startX = e.pageX - subjectSelector.offsetLeft;
                     scrollLeft = subjectSelector.scrollLeft;
                 });
-
-                subjectSelector.addEventListener('mouseleave', () => {
-                    isDown = false;
-                    subjectSelector.classList.remove('grabbing');
-                });
-
-                subjectSelector.addEventListener('mouseup', () => {
-                    isDown = false;
-                    subjectSelector.classList.remove('grabbing');
-                });
-
+                subjectSelector.addEventListener('mouseleave', () => { isDown = false; subjectSelector.classList.remove('grabbing'); });
+                subjectSelector.addEventListener('mouseup', () => { isDown = false; subjectSelector.classList.remove('grabbing'); });
                 subjectSelector.addEventListener('mousemove', (e) => {
                     if (!isDown) return;
                     e.preventDefault();
                     const x = e.pageX - subjectSelector.offsetLeft;
-                    const walk = (x - startX) * 1.5; // 스크롤 감도 조절
+                    const walk = (x - startX) * 1.5;
                     subjectSelector.scrollLeft = scrollLeft - walk;
                 });
             }
-
-            // --- 오류 모달 함수 ---
-            function showErrorModal(message) {
-                errorMessage.textContent = message;
-                errorModal.classList.remove('hidden');
-            }
-
-            // --- Authentication Logic ---
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    loginContainer.classList.add('hidden');
-                    appContainer.classList.remove('hidden');
-                    appContainer.classList.add('flex');
-                    userIdSpan.textContent = user.displayName || 'User';
-                    userImg.src = user.photoURL || 'https://placehold.co/40x40/E2E8F0/4A5568?text=P';
-                    renderSubjects();
-                    renderPosts();
-                } else {
-                    loginContainer.classList.remove('hidden');
-                    appContainer.classList.add('hidden');
-                    appContainer.classList.remove('flex');
-                }
-            });
-
-            const handleGoogleLogin = async () => {
-                try {
-                    await signInWithPopup(auth, provider);
-                } catch (error) {
-                    console.error("Google 로그인 오류:", error);
-                    if (error.code === 'auth/unauthorized-domain') {
-                        showErrorModal('이 앱의 도메인이 Firebase 인증 설정에 등록되지 않았습니다. Firebase 콘솔에서 현재 사이트의 도메인을 직접 추가해야 합니다.');
-                    } else {
-                        showErrorModal(`로그인 중 알 수 없는 오류가 발생했습니다: ${error.message}`);
-                    }
-                }
-            };
-
-            const handleLogout = async () => {
-                try {
-                    await signOut(auth);
-                } catch (error) {
-                    console.error("로그아웃 오류:", error);
-                }
-            };
-            
-            loginBtn.addEventListener('click', handleGoogleLogin);
-            logoutBtn.addEventListener('click', handleLogout);
 
             // --- 렌더링 함수 ---
             function renderSubjects() {
@@ -290,9 +242,10 @@
                     const button = document.createElement('button');
                     button.textContent = subject;
                     button.className = `px-4 py-2 rounded-full text-sm font-semibold transition-colors flex-shrink-0 ${subject === activeSubject ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
-                    button.onclick = (e) => {
-                         // 드래그가 아닌 클릭 이벤트를 구분하기 위함
-                        if (Math.abs(subjectSelector.scrollLeft - scrollLeft) > 5) return;
+                    button.onclick = () => {
+                        const wasDragged = Math.abs(subjectSelector.scrollLeft - scrollLeft) > 5;
+                        if(isDown && wasDragged) return;
+
                         activeSubject = subject;
                         renderSubjects();
                         renderPosts();
@@ -306,13 +259,17 @@
                 const filteredPosts = activeSubject === '전체' ? posts : posts.filter(p => p.subject === activeSubject);
                 
                 if (filteredPosts.length === 0) {
-                    feed.innerHTML = `<div class="text-center p-10 text-gray-500">게시물이 없습니다.</div>`;
+                    feed.innerHTML = `<div class="text-center p-10 text-gray-500">게시물이 없습니다.<br>첫 질문을 등록해보세요!</div>`;
                     return;
                 }
 
-                filteredPosts.slice().reverse().forEach(post => {
+                filteredPosts.forEach(post => { // 순서를 DB에서 정렬하므로 reverse() 제거
                     const postElement = document.createElement('div');
                     postElement.className = 'feed-item h-full flex-shrink-0 bg-white border-b flex flex-col p-4';
+                    
+                    // 현재 사용자가 이 게시물에 하트를 눌렀는지 확인
+                    const isLiked = likedPosts.has(post.id);
+
                     postElement.innerHTML = `
                         <div class="flex items-center mb-3">
                             <img src="${post.userImg}" alt="user" class="w-10 h-10 rounded-full mr-3">
@@ -327,8 +284,8 @@
                             ${post.image ? `<img src="${post.image}" alt="post image" class="rounded-lg w-full object-cover mb-4">` : ''}
                         </div>
                         <div class="flex items-center space-x-6 pt-3 mt-auto">
-                            <button class="flex items-center space-x-1 text-gray-600 hover:text-red-500 transition-colors" onclick="toggleHeart(this, ${post.id})">
-                                <i class="fa-regular fa-heart text-xl"></i>
+                            <button class="flex items-center space-x-1 text-gray-600 hover:text-red-500 transition-colors" onclick="toggleHeart(this, '${post.id}')">
+                                <i class="fa-${isLiked ? 'solid text-red-500' : 'regular'} fa-heart text-xl"></i>
                                 <span class="font-semibold text-sm">${post.hearts}</span>
                             </button>
                             <button class="flex items-center space-x-1 text-gray-600 hover:text-blue-500 transition-colors">
@@ -341,71 +298,134 @@
                 });
             }
 
+            // --- 인증 관련 함수 ---
+            const handleLogin = async () => {
+                try {
+                    await signInWithPopup(auth, provider);
+                } catch (error) {
+                    console.error("Google 로그인 오류:", error);
+                    errorMessage.textContent = `로그인 중 오류가 발생했습니다. Firebase 콘솔에서 도메인이 승인되었는지 확인해주세요. (오류: ${error.code})`;
+                    errorModal.classList.remove('hidden');
+                }
+            };
+
+            const handleLogout = async () => {
+                try {
+                    await signOut(auth);
+                } catch (error) {
+                    console.error("로그아웃 오류:", error);
+                }
+            };
+
             // --- 이벤트 리스너 ---
+            loginBtn.addEventListener('click', handleLogin);
+            logoutBtn.addEventListener('click', handleLogout);
             createPostBtn.addEventListener('click', () => postModal.classList.remove('hidden'));
             closePostModalBtn.addEventListener('click', () => postModal.classList.add('hidden'));
             closeErrorModalBtn.addEventListener('click', () => errorModal.classList.add('hidden'));
 
             profileButton.addEventListener('click', () => {
-                const user = auth.currentUser;
-                if (user) {
-                    profileModalUserImg.src = user.photoURL || 'https://placehold.co/80x80/E2E8F0/4A5568?text=P';
-                    profileModalUserId.textContent = user.displayName || 'User';
-                }
+                const currentUser = auth.currentUser;
+                if (!currentUser) return;
+
+                // 실시간 데이터를 기반으로 통계 계산
+                const myPosts = posts.filter(p => p.userId === currentUser.uid);
+                const totalMyPosts = myPosts.length;
+                const totalMyHearts = myPosts.reduce((sum, post) => sum + (post.hearts || 0), 0);
+                
+                profileModalUserImg.src = currentUser.photoURL;
+                profileModalUserId.textContent = currentUser.displayName;
+                totalHearts.textContent = totalMyHearts;
+                totalPosts.textContent = totalMyPosts;
+                totalComments.textContent = 0; // 댓글 기능은 아직 구현되지 않음
                 profileModal.classList.remove('hidden');
             });
             closeProfileModalBtn.addEventListener('click', () => profileModal.classList.add('hidden'));
             
-            postModal.addEventListener('click', (e) => { if(e.target === postModal) postModal.classList.add('hidden'); });
-            profileModal.addEventListener('click', (e) => { if(e.target === profileModal) profileModal.classList.add('hidden'); });
+            postModal.addEventListener('click', (e) => { if (e.target === postModal) postModal.classList.add('hidden'); });
+            profileModal.addEventListener('click', (e) => { if (e.target === profileModal) profileModal.classList.add('hidden'); });
             
             postImageInput.addEventListener('change', () => {
                 imagePreview.textContent = postImageInput.files.length > 0 ? postImageInput.files[0].name : '';
             });
 
-            postForm.addEventListener('submit', (e) => {
+            postForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const user = auth.currentUser;
-                if (!user) { return; }
+                const currentUser = auth.currentUser;
+                if (!currentUser) return;
 
-                const newPost = {
-                    id: newPostId++,
+                const newPostData = {
                     subject: activeSubject === '전체' ? '기타' : activeSubject,
-                    user: user.displayName || 'Anonymous',
-                    userImg: user.photoURL || 'https://placehold.co/40x40/E2E8F0/4A5568?text=P',
+                    user: currentUser.displayName,
+                    userImg: currentUser.photoURL,
+                    userId: currentUser.uid,
                     title: document.getElementById('post-title').value,
                     content: document.getElementById('post-content').value,
-                    image: postImageInput.files.length > 0 ? URL.createObjectURL(postImageInput.files[0]) : null,
+                    image: null, // 실제 이미지 저장은 Firebase Storage 필요 (추후 구현)
                     hearts: 0,
-                    comments: 0
+                    comments: 0,
+                    createdAt: serverTimestamp()
                 };
                 
-                posts.push(newPost);
-                postModal.classList.add('hidden');
-                postForm.reset();
-                imagePreview.textContent = '';
-                renderPosts();
-
-                setTimeout(() => { feed.scrollTop = 0; }, 100);
+                try {
+                    await addDoc(collection(db, "posts"), newPostData);
+                    postModal.classList.add('hidden');
+                    postForm.reset();
+                    imagePreview.textContent = '';
+                } catch (error) {
+                    console.error("게시물 추가 오류: ", error);
+                    errorMessage.textContent = '게시물을 저장하는 데 실패했습니다.';
+                    errorModal.classList.remove('hidden');
+                }
             });
 
             // --- 글로벌 함수 ---
-            window.toggleHeart = (button, postId) => {
-                const icon = button.querySelector('i');
-                const countSpan = button.querySelector('span');
-                const post = posts.find(p => p.id === postId);
+            window.toggleHeart = async (button, postId) => {
+                if(!auth.currentUser) return;
+                const postRef = doc(db, "posts", postId);
 
-                if (icon.classList.contains('fa-regular')) {
-                    icon.classList.replace('fa-regular', 'fa-solid');
-                    icon.classList.add('text-red-500');
-                    post.hearts++;
+                if (likedPosts.has(postId)) {
+                    likedPosts.delete(postId); // 로컬 상태에서 제거
+                    await updateDoc(postRef, { hearts: increment(-1) });
                 } else {
-                    icon.classList.replace('fa-solid', 'fa-regular');
-                    icon.classList.remove('text-red-500');
-                    post.hearts--;
+                    likedPosts.add(postId); // 로컬 상태에 추가
+                    await updateDoc(postRef, { hearts: increment(1) });
                 }
-                countSpan.textContent = post.hearts;
+                renderPosts(); // UI 즉시 업데이트
             };
+
+            // --- 인증 상태 변경 감지 및 데이터 동기화 ---
+            let unsubscribePosts = null; 
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    loginContainer.classList.add('hidden');
+                    appContainer.classList.remove('hidden');
+                    initializeAppUI(user);
+
+                    // Firestore 실시간 리스너 설정
+                    const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+                    unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
+                        posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        renderPosts();
+                    }, (error) => {
+                        console.error("데이터 가져오기 오류:", error);
+                        errorMessage.textContent = '데이터를 불러오는 데 실패했습니다.';
+                        errorModal.classList.remove('hidden');
+                    });
+
+                } else {
+                    loginContainer.classList.remove('hidden');
+                    appContainer.classList.add('hidden');
+                    
+                    // 로그아웃 시 리스너 해제 및 로컬 데이터 초기화
+                    if (unsubscribePosts) {
+                        unsubscribePosts();
+                    }
+                    posts = [];
+                    likedPosts.clear();
+                    activeSubject = '전체';
+                }
+            });
         });
     </script>
 </body>
