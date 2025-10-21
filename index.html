@@ -67,7 +67,7 @@
 
         <nav class="bg-white border-b sticky top-0 z-10">
             <div id="subject-selector" class="flex space-x-4 p-3 overflow-x-auto no-scrollbar whitespace-nowrap">
-                </div>
+            </div>
         </nav>
 
         <main id="feed" class="flex-1 overflow-y-auto feed-container bg-gray-50">
@@ -140,27 +140,30 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, increment, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // [추가] Firebase Storage 모듈 임포트
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        
+        // [제거] Firebase Storage 모듈 임포트 제거
+        // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         document.addEventListener('DOMContentLoaded', () => {
             // --- Firebase 설정 ---
-        const firebaseConfig = {
-          apiKey: "AIzaSyBeTzTZX7mRUAI-ePgV46hmaRPZvlsdFyQ",
-          authDomain: "wasted-51dd3.firebaseapp.com",
-          projectId: "wasted-51dd3",
-          storageBucket: "wasted-51dd3.firebasestorage.app",
-          messagingSenderId: "227273066378",
-          appId: "1:227273066378:web:2927cb389f2154e4386a73",
-          measurementId: "G-PQ9HRJLGMQ"
-        };
+            const firebaseConfig = {
+                apiKey: "AIzaSyBeTzTZX7mRUAI-ePgV46hmaRPZvlsdFyQ",
+                authDomain: "wasted-51dd3.firebaseapp.com",
+                projectId: "wasted-51dd3",
+                storageBucket: "wasted-51dd3.firebasestorage.app", // 이 값은 지금 사용되지 않지만, config 객체에 두어도 무방합니다.
+                messagingSenderId: "227273066378",
+                appId: "1:227273066378:web:2927cb389f2154e4386a73",
+                measurementId: "G-PQ9HRJLGMQ"
+            };
 
             // Firebase 초기화
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
             const db = getFirestore(app);
-            // [추가] Firebase Storage 초기화
-            const storage = getStorage(app); 
+            
+            // [제거] Firebase Storage 초기화 제거
+            // const storage = getStorage(app); 
+            
             const provider = new GoogleAuthProvider();
             
             // --- 데이터 ---
@@ -169,6 +172,7 @@
             let likedPosts = new Set(); // 현재 세션에서 '하트'를 누른 게시물 ID 저장
             
             // --- DOM 요소 ---
+            // (DOM 요소 선택자는 원본과 동일)
             const loginContainer = document.getElementById('login-container');
             const appContainer = document.getElementById('app-container');
             const loginBtn = document.getElementById('login-btn');
@@ -206,6 +210,7 @@
             }
 
             // --- 과목 선택창 드래그 스크롤 기능 ---
+            // (원본과 동일)
             let isDown = false;
             let startX;
             let scrollLeft;
@@ -230,6 +235,7 @@
 
             // --- 렌더링 함수 ---
             function renderSubjects() {
+                // (원본과 동일)
                 subjectSelector.innerHTML = '';
                 subjects.forEach(subject => {
                     const button = document.createElement('button');
@@ -248,6 +254,7 @@
             }
 
             function renderPosts() {
+                // (원본과 동일)
                 feed.innerHTML = '';
                 const filteredPosts = activeSubject === '전체' ? posts : posts.filter(p => p.subject === activeSubject);
                 
@@ -256,14 +263,12 @@
                     return;
                 }
 
-                filteredPosts.forEach(post => { // 순서를 DB에서 정렬하므로 reverse() 제거
+                filteredPosts.forEach(post => {
                     const postElement = document.createElement('div');
                     postElement.className = 'feed-item h-full flex-shrink-0 bg-white border-b flex flex-col p-4';
                     
-                    // 현재 사용자가 이 게시물에 하트를 눌렀는지 확인
                     const isLiked = likedPosts.has(post.id);
 
-                    // [수정] post.image가 null이 아닌 유효한 URL일 때만 img 태그를 생성합니다. (기존 코드와 동일하지만 이제 post.image에 URL이 들어옵니다)
                     postElement.innerHTML = `
                         <div class="flex items-center mb-3">
                             <img src="${post.userImg}" alt="user" class="w-10 h-10 rounded-full mr-3">
@@ -293,6 +298,7 @@
             }
 
             // --- 인증 관련 함수 ---
+            // (원본과 동일)
             const handleLogin = async () => {
                 try {
                     await signInWithPopup(auth, provider);
@@ -312,6 +318,7 @@
             };
 
             // --- 이벤트 리스너 ---
+            // (대부분 원본과 동일)
             loginBtn.addEventListener('click', handleLogin);
             logoutBtn.addEventListener('click', handleLogout);
             createPostBtn.addEventListener('click', () => postModal.classList.remove('hidden'));
@@ -322,7 +329,6 @@
                 const currentUser = auth.currentUser;
                 if (!currentUser) return;
 
-                // 실시간 데이터를 기반으로 통계 계산
                 const myPosts = posts.filter(p => p.userId === currentUser.uid);
                 const totalMyPosts = myPosts.length;
                 const totalMyHearts = myPosts.reduce((sum, post) => sum + (post.hearts || 0), 0);
@@ -331,7 +337,7 @@
                 profileModalUserId.textContent = currentUser.displayName;
                 totalHearts.textContent = totalMyHearts;
                 totalPosts.textContent = totalMyPosts;
-                totalComments.textContent = 0; // 댓글 기능은 아직 구현되지 않음
+                totalComments.textContent = 0; 
                 profileModal.classList.remove('hidden');
             });
             closeProfileModalBtn.addEventListener('click', () => profileModal.classList.add('hidden'));
@@ -343,7 +349,7 @@
                 imagePreview.textContent = postImageInput.files.length > 0 ? postImageInput.files[0].name : '';
             });
 
-            // [수정] postForm 이벤트 리스너 전체 수정 (이미지 업로드 로직 추가)
+            // [수정] postForm 이벤트 리스너 전체 수정 (자체 서버 업로드 로직으로 변경)
             postForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const currentUser = auth.currentUser;
@@ -354,18 +360,43 @@
                 const content = document.getElementById('post-content').value;
                 const file = postImageInput.files[0];
                 let imageUrl = null;
+                
+                // (!!!) 여기에 실제 운영 서버의 업로드 엔드포인트 URL을 입력해야 합니다.
+                const UPLOAD_SERVER_URL = 'https://your-server-domain.com/upload'; 
 
                 // 1. 버튼 비활성화 및 로딩 상태 표시
                 submitButton.disabled = true;
                 submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> 게시 중...';
 
                 try {
-                    // 2. 이미지 업로드 (파일이 있는 경우)
+                    // 2. 이미지 업로드 (파일이 있는 경우) - [수정] Firebase Storage 대신 fetch 사용
                     if (file) {
-                        // 파일 이름에 타임스탬프를 추가하여 고유성 보장
-                        const storageRef = ref(storage, `images/${Date.now()}_${file.name}`);
-                        const snapshot = await uploadBytes(storageRef, file);
-                        imageUrl = await getDownloadURL(snapshot.ref);
+                        console.log('자체 서버로 이미지 업로드 시작...');
+                        const formData = new FormData();
+                        // 'image'는 서버에서 받을 때 사용할 key입니다. (예: Express/multer의 req.file('image'))
+                        formData.append('image', file); 
+
+                        const response = await fetch(UPLOAD_SERVER_URL, {
+                            method: 'POST',
+                            body: formData
+                            // FormData를 사용하면 Content-Type 헤더는 브라우저가 자동으로 설정합니다.
+                        });
+
+                        if (!response.ok) {
+                            // 서버에서 오류 응답을 보냈을 때
+                            throw new Error(`서버 업로드 실패: ${response.statusText}`);
+                        }
+
+                        // 서버는 { "imageUrl": "..." } 형태의 JSON을 반환한다고 가정합니다.
+                        const result = await response.json(); 
+
+                        if (!result.imageUrl) {
+                            // 서버 응답은 성공(200 OK)했으나, 예상한 imageUrl 필드가 없을 때
+                            throw new Error('서버 응답에 imageUrl이 없습니다.');
+                        }
+
+                        imageUrl = result.imageUrl; // 서버에서 받은 URL을 변수에 할당
+                        console.log('서버 업로드 성공, URL:', imageUrl);
                     }
 
                     // 3. Firestore에 저장할 데이터 객체 생성
@@ -376,7 +407,7 @@
                         userId: currentUser.uid,
                         title: title,
                         content: content,
-                        image: imageUrl, // [수정] null 대신 업로드된 이미지 URL 저장
+                        image: imageUrl, // [수정] 자체 서버에서 받은 이미지 URL 저장
                         hearts: 0,
                         comments: 0,
                         createdAt: serverTimestamp()
@@ -390,9 +421,9 @@
                     postForm.reset();
                     imagePreview.textContent = '';
                 } catch (error) {
-                    // 6. 오류 발생 시
+                    // 6. 오류 발생 시 (네트워크 오류, 서버 업로드 실패, Firestore 저장 실패 등)
                     console.error("게시물 추가 오류: ", error);
-                    errorMessage.textContent = '게시물을 저장하는 데 실패했습니다. (오류: ' + error.code + ')';
+                    errorMessage.textContent = '게시물을 저장하는 데 실패했습니다. (오류: ' + error.message + ')';
                     errorModal.classList.remove('hidden');
                 } finally {
                     // 7. 성공/실패 여부와 관계없이 버튼 원상 복구
@@ -402,11 +433,11 @@
             });
 
             // --- 글로벌 함수 ---
+            // (원본과 동일)
             window.toggleHeart = async (button, postId) => {
                 if(!auth.currentUser) return;
                 const postRef = doc(db, "posts", postId);
                 
-                // 로컬 UI 즉시 업데이트를 위해 post 객체를 찾음
                 const post = posts.find(p => p.id === postId);
                 if (!post) return;
 
@@ -415,34 +446,29 @@
 
                 if (likedPosts.has(postId)) {
                     // --- 좋아요 취소 ---
-                    likedPosts.delete(postId); // 로컬 상태에서 제거
+                    likedPosts.delete(postId); 
                     
-                    // UI 즉시 업데이트
                     post.hearts -= 1;
                     icon.classList.remove('fa-solid', 'text-red-500');
                     icon.classList.add('fa-regular');
                     span.textContent = post.hearts;
                     
-                    // DB 업데이트
                     await updateDoc(postRef, { hearts: increment(-1) });
                 } else {
                     // --- 좋아요 누르기 ---
-                    likedPosts.add(postId); // 로컬 상태에 추가
+                    likedPosts.add(postId); 
                     
-                    // UI 즉시 업데이트
                     post.hearts += 1;
                     icon.classList.remove('fa-regular');
                     icon.classList.add('fa-solid', 'text-red-500');
                     span.textContent = post.hearts;
                     
-                    // DB 업데이트
                     await updateDoc(postRef, { hearts: increment(1) });
                 }
-                // 실시간 리스너가 DB 변경을 감지하고 renderPosts()를 다시 호출하여
-                // 데이터를 동기화하지만, 이 즉각적인 UI 업데이트가 사용자 경험을 향상시킵니다.
             };
 
             // --- 인증 상태 변경 감지 및 데이터 동기화 ---
+            // (원본과 동일)
             let unsubscribePosts = null; 
             onAuthStateChanged(auth, (user) => {
                 if (user) {
@@ -450,11 +476,9 @@
                     appContainer.classList.remove('hidden');
                     initializeAppUI(user);
 
-                    // Firestore 실시간 리스너 설정
                     const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"));
                     unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
                         posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        // likedPosts 상태와 현재 posts를 비교하여 liked UI를 일관성 있게 업데이트
                         renderPosts();
                     }, (error) => {
                         console.error("데이터 가져오기 오류:", error);
@@ -466,7 +490,6 @@
                     loginContainer.classList.remove('hidden');
                     appContainer.classList.add('hidden');
                     
-                    // 로그아웃 시 리스너 해제 및 로컬 데이터 초기화
                     if (unsubscribePosts) {
                         unsubscribePosts();
                     }
@@ -479,5 +502,3 @@
     </script>
 </body>
 </html>
-
-
