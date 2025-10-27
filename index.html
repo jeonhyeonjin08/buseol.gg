@@ -46,16 +46,15 @@
 </head>
 <body class="bg-gray-100">
 
-    <div id="login-container" class="max-w-md mx-auto h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
+    <!-- 로그인 컨테이너: 기본적으로 숨김 -->
+    <div id="login-container" class="max-w-md mx-auto h-screen bg-white flex flex-col items-center justify-center p-8 text-center hidden">
         <h1 class="text-4xl font-bold text-blue-600 mb-4">Q-study</h1>
         <p class="text-gray-600 mb-10">학습 질문을 공유하고 함께 성장하세요.</p>
-        <button id="login-btn" class="flex items-center justify-center w-full max-w-xs bg-white border border-gray-300 rounded-lg shadow-md px-6 py-3 text-sm font-medium text-gray-800 hover:bg-gray-50 transition-colors">
-            <svg class="w-5 h-5 mr-4" viewBox="0 0 48 48"><path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l8.35 6.48C12.73 13.72 17.93 9.5 24 9.5z"></path><path fill="#34A853" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6.02C43.51 39.84 46.98 32.95 46.98 24.55z"></path><path fill="#FBBC05" d="M10.91 28.7A14.9 14.9 0 0 1 9.5 24c0-1.45.22-2.85.61-4.18l-8.35-6.48A24.01 24.01 0 0 0 0 24c0 4.14 1.04 7.97 2.82 11.27l8.09-6.57z"></path><path fill="#EA4335" d="M24 48c6.48 0 11.93-2.13 15.89-5.82l-7.73-6.02c-2.15 1.45-4.92 2.3-8.16 2.3-6.07 0-11.27-4.22-13.19-9.92L2.56 34.78C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
-            <span>Google 계정으로 로그인</span>
-        </button>
+        <!-- Google 로그인 버튼은 Canvas 환경에서 필요 없음 -->
     </div>
 
-    <div id="app-container" class="max-w-md mx-auto h-screen bg-white shadow-lg overflow-hidden flex flex-col hidden">
+    <!-- 앱 컨테이너: 기본적으로 표시 -->
+    <div id="app-container" class="max-w-md mx-auto h-screen bg-white shadow-lg overflow-hidden flex flex-col">
 
         <header class="flex justify-between items-center p-4 border-b bg-white z-10">
             <h1 class="text-xl font-bold text-blue-600">Q-study</h1>
@@ -67,17 +66,20 @@
 
         <nav class="bg-white border-b sticky top-0 z-10">
             <div id="subject-selector" class="flex space-x-4 p-3 overflow-x-auto no-scrollbar whitespace-nowrap">
-                </div>
+                <!-- 과목 버튼은 JS로 렌더링 -->
+            </div>
         </nav>
 
         <main id="feed" class="flex-1 overflow-y-auto feed-container bg-gray-50">
-            </main>
+            <!-- 게시물은 JS로 렌더링 -->
+        </main>
         
         <button id="create-post-btn" class="fixed bottom-6 right-1/2 translate-x-[calc(100%+1rem)] md:translate-x-[11rem] w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-transform transform hover:scale-105">
             <i class="fa-solid fa-plus text-2xl"></i>
         </button>
     </div>
 
+    <!-- 새 질문 모달 -->
     <div id="post-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative animate-scale-up">
             <button id="close-post-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
@@ -88,17 +90,18 @@
                 <input type="text" id="post-title" placeholder="제목을 입력하세요" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required>
                 <textarea id="post-content" placeholder="궁금한 내용을 적어주세요..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 h-40 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required></textarea>
                 <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                     <label for="post-image" class="cursor-pointer text-blue-600 font-medium hover:text-blue-700">
-                        <i class="fa-solid fa-camera mr-2"></i> 사진 첨부
-                    </label>
-                    <input type="file" id="post-image" class="hidden" accept="image/*">
-                    <span id="image-preview" class="text-sm text-gray-500"></span>
+                        <label for="post-image" class="cursor-pointer text-blue-600 font-medium hover:text-blue-700">
+                            <i class="fa-solid fa-camera mr-2"></i> 사진 첨부
+                        </label>
+                        <input type="file" id="post-image" class="hidden" accept="image/*">
+                        <span id="image-preview" class="text-sm text-gray-500"></span>
                 </div>
                 <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg mt-6 hover:bg-blue-700 transition-colors">게시하기</button>
             </form>
         </div>
     </div>
     
+    <!-- 프로필 모달 -->
     <div id="profile-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 relative text-center animate-scale-up">
              <button id="close-profile-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
@@ -125,6 +128,7 @@
         </div>
     </div>
 
+    <!-- 댓글 모달 -->
     <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-0 relative animate-scale-up flex flex-col h-[80vh]">
             <div class="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
@@ -134,7 +138,8 @@
                 </button>
             </div>
             <div id="comment-list" class="flex-1 overflow-y-auto p-4 space-y-4">
-                </div>
+                <!-- 댓글은 JS로 렌더링 -->
+            </div>
             <form id="comment-form" class="p-4 border-t bg-gray-50 flex items-center sticky bottom-0 bg-white rounded-b-2xl">
                 <input type="hidden" id="comment-post-id">
                 <input type="text" id="comment-input" placeholder="댓글을 입력하세요..." class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required>
@@ -145,6 +150,7 @@
         </div>
     </div>
 
+    <!-- 오류 모달 -->
     <div id="error-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative text-center animate-scale-up">
             <div class="flex justify-center items-center mx-auto w-12 h-12 rounded-full bg-red-100 mb-4">
@@ -158,26 +164,27 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, increment, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // (*** MODIFIED ***) - signInWithCustomToken, signInAnonymously 추가, GoogleAuthProvider, signInWithPopup 제거
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, increment, query, orderBy, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Firebase 설정 ---
-            const firebaseConfig = {
-                apiKey: "AIzaSyBeTzTZX7mRUAI-ePgV46hmaRPZvlsdFyQ",
-                authDomain: "wasted-51dd3.firebaseapp.com",
-                projectId: "wasted-51dd3",
-                storageBucket: "wasted-51dd3.firebasestorage.app",
-                messagingSenderId: "227273066378",
-                appId: "1:227273066378:web:2927cb389f2154e4386a73",
-                measurementId: "G-PQ9HRJLGMQ"
-            };
+            // --- (*** MODIFIED ***) Firebase 설정 (Canvas 환경 변수 사용) ---
+            const firebaseConfig = typeof __firebase_config !== 'undefined' 
+                ? JSON.parse(__firebase_config)
+                : { apiKey: "FALLBACK_API_KEY", authDomain: "FALLBACK_AUTH_DOMAIN", projectId: "FALLBACK_PROJECT_ID" }; // 폴백
+            
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
             // Firebase 초기화
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
             const db = getFirestore(app);
-            const provider = new GoogleAuthProvider();
+            setLogLevel('debug'); // Firestore 디버그 로그 활성화
+
+            // --- (*** NEW ***) Firestore 경로 ---
+            const postsCollectionPath = `artifacts/${appId}/public/data/posts`;
+            let currentUserId = null; // 현재 유저 ID
             
             // --- 데이터 ---
             const subjects = ['전체', '국어', '수학', '영어', '빅데이터', '과학', '사회', '코딩', '역사', '지리'];
@@ -185,9 +192,9 @@
             let likedPosts = new Set(); // 현재 세션에서 '하트'를 누른 게시물 ID 저장
             
             // --- DOM 요소 ---
-            const loginContainer = document.getElementById('login-container');
+            // const loginContainer = document.getElementById('login-container'); // (*** REMOVED ***)
             const appContainer = document.getElementById('app-container');
-            const loginBtn = document.getElementById('login-btn');
+            // const loginBtn = document.getElementById('login-btn'); // (*** REMOVED ***)
             const logoutBtn = document.getElementById('logout-btn');
             const subjectSelector = document.getElementById('subject-selector');
             const userIdSpan = document.getElementById('user-id');
@@ -222,10 +229,14 @@
 
             let activeSubject = '전체';
             
-            // --- 앱 초기화 (로그인 성공 시 호출) ---
+            // --- (*** MODIFIED ***) 앱 초기화 (로그인 성공 시 호출) ---
             function initializeAppUI(user) {
-                userIdSpan.textContent = user.displayName;
-                userImg.src = user.photoURL;
+                // (*** NEW ***) 익명/커스텀 유저 프로필 정보 설정
+                const displayName = user.displayName || `User-${user.uid.substring(0, 6)}`;
+                const photoURL = user.photoURL || `https://placehold.co/40x40/E2E8F0/4A5568?text=${displayName[0]}`;
+
+                userIdSpan.textContent = displayName;
+                userImg.src = photoURL;
                 renderSubjects();
                 renderPosts();
             }
@@ -281,7 +292,7 @@
                     return;
                 }
 
-                filteredPosts.forEach(post => { // 순서를 DB에서 정렬하므로 reverse() 제거
+                filteredPosts.forEach(post => { // 순서는 DB에서 정렬하므로 reverse() 제거
                     const postElement = document.createElement('div');
                     postElement.className = 'feed-item h-full flex-shrink-0 bg-white border-b flex flex-col p-4';
                     
@@ -316,17 +327,8 @@
                 });
             }
 
-            // --- 인증 관련 함수 ---
-            const handleLogin = async () => {
-                try {
-                    await signInWithPopup(auth, provider);
-                } catch (error) {
-                    console.error("Google 로그인 오류:", error);
-                    errorMessage.textContent = `로그인 중 오류가 발생했습니다. Firebase 콘솔에서 도메인이 승인되었는지 확인해주세요. (오류: ${error.code})`;
-                    errorModal.classList.remove('hidden');
-                }
-            };
-
+            // --- (*** REMOVED ***) 로그인/로그아웃 함수 ---
+            // handleLogin 제거
             const handleLogout = async () => {
                 try {
                     await signOut(auth);
@@ -335,8 +337,23 @@
                 }
             };
 
+            // --- (*** NEW ***) 자동 인증 함수 ---
+            async function authenticateUser() {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("인증 오류:", error);
+                    errorMessage.textContent = `인증에 실패했습니다: ${error.message}`;
+                    errorModal.classList.remove('hidden');
+                }
+            }
+
             // --- 이벤트 리스너 ---
-            loginBtn.addEventListener('click', handleLogin);
+            // loginBtn.addEventListener('click', handleLogin); // (*** REMOVED ***)
             logoutBtn.addEventListener('click', handleLogout);
             createPostBtn.addEventListener('click', () => postModal.classList.remove('hidden'));
             closePostModalBtn.addEventListener('click', () => postModal.classList.add('hidden'));
@@ -346,6 +363,10 @@
                 const currentUser = auth.currentUser;
                 if (!currentUser) return;
 
+                // (*** NEW ***) 익명 유저 처리
+                const displayName = currentUser.displayName || `User-${currentUser.uid.substring(0, 6)}`;
+                const photoURL = currentUser.photoURL || `https://placehold.co/80x80/E2E8F0/4A5568?text=${displayName[0]}`;
+
                 // 실시간 데이터를 기반으로 통계 계산
                 const myPosts = posts.filter(p => p.userId === currentUser.uid);
                 const totalMyPosts = myPosts.length;
@@ -354,8 +375,8 @@
                 // (*** MODIFIED ***) - 내 게시물의 댓글 수 총합 계산
                 const totalMyComments = myPosts.reduce((sum, post) => sum + (post.comments || 0), 0);
                 
-                profileModalUserImg.src = currentUser.photoURL;
-                profileModalUserId.textContent = currentUser.displayName;
+                profileModalUserImg.src = photoURL; // (*** MODIFIED ***)
+                profileModalUserId.textContent = displayName; // (*** MODIFIED ***)
                 totalHearts.textContent = totalMyHearts;
                 totalPosts.textContent = totalMyPosts;
                 totalComments.textContent = totalMyComments; // (*** MODIFIED ***)
@@ -375,10 +396,14 @@
                 const currentUser = auth.currentUser;
                 if (!currentUser) return;
 
+                // (*** NEW ***) 익명 유저 처리
+                const displayName = currentUser.displayName || `User-${currentUser.uid.substring(0, 6)}`;
+                const photoURL = currentUser.photoURL || `https://placehold.co/40x40/E2E8F0/4A5568?text=${displayName[0]}`;
+
                 const newPostData = {
                     subject: activeSubject === '전체' ? '기타' : activeSubject,
-                    user: currentUser.displayName,
-                    userImg: currentUser.photoURL,
+                    user: displayName, // (*** MODIFIED ***)
+                    userImg: photoURL, // (*** MODIFIED ***)
                     userId: currentUser.uid,
                     title: document.getElementById('post-title').value,
                     content: document.getElementById('post-content').value,
@@ -389,7 +414,8 @@
                 };
                 
                 try {
-                    await addDoc(collection(db, "posts"), newPostData);
+                     // (*** MODIFIED ***) Firestore 경로 수정
+                    await addDoc(collection(db, postsCollectionPath), newPostData);
                     postModal.classList.add('hidden');
                     postForm.reset();
                     imagePreview.textContent = '';
@@ -409,7 +435,8 @@
             // --- 글로벌 함수 ---
             window.toggleHeart = async (button, postId) => {
                 if(!auth.currentUser) return;
-                const postRef = doc(db, "posts", postId);
+                 // (*** MODIFIED ***) Firestore 경로 수정
+                const postRef = doc(db, postsCollectionPath, postId);
 
                 if (likedPosts.has(postId)) {
                     likedPosts.delete(postId); // 로컬 상태에서 제거
@@ -435,8 +462,8 @@
                     unsubscribeComments();
                 }
 
-                // 새 리스너 설정: posts/{postId}/comments 컬렉션을 createdAt 오름차순으로 구독
-                const commentsQuery = query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc"));
+                // 새 리스너 설정: (*** MODIFIED ***) Firestore 경로 수정
+                const commentsQuery = query(collection(db, postsCollectionPath, postId, "comments"), orderBy("createdAt", "asc"));
                 unsubscribeComments = onSnapshot(commentsQuery, (snapshot) => {
                     commentList.innerHTML = ''; // 목록 비우기
                     if (snapshot.empty) {
@@ -500,21 +527,25 @@
 
                 if (!currentUser || !postId || commentText === '') return;
 
+                // (*** NEW ***) 익명 유저 처리
+                const displayName = currentUser.displayName || `User-${currentUser.uid.substring(0, 6)}`;
+                const photoURL = currentUser.photoURL || `https://placehold.co/40x40/E2E8F0/4A5568?text=${displayName[0]}`;
+
                 // 1. 새 댓글 데이터
                 const newCommentData = {
                     text: commentText,
-                    user: currentUser.displayName,
-                    userImg: currentUser.photoURL,
+                    user: displayName, // (*** MODIFIED ***)
+                    userImg: photoURL, // (*** MODIFIED ***)
                     userId: currentUser.uid,
                     createdAt: serverTimestamp()
                 };
                 
-                // 2. 원본 게시물 문서 참조
-                const postRef = doc(db, "posts", postId);
+                // 2. 원본 게시물 문서 참조 (*** MODIFIED ***)
+                const postRef = doc(db, postsCollectionPath, postId);
 
                 try {
-                    // 1. 'comments' 서브컬렉션에 새 댓글 추가
-                    await addDoc(collection(db, "posts", postId, "comments"), newCommentData);
+                    // 1. 'comments' 서브컬렉션에 새 댓글 추가 (*** MODIFIED ***)
+                    await addDoc(collection(db, postsCollectionPath, postId, "comments"), newCommentData);
                     
                     // 2. 'posts' 문서의 'comments' 카운트 1 증가
                     await updateDoc(postRef, { comments: increment(1) });
@@ -529,16 +560,15 @@
             }
 
 
-            // --- 인증 상태 변경 감지 및 데이터 동기화 ---
+            // --- (*** MODIFIED ***) 인증 상태 변경 감지 및 데이터 동기화 ---
             let unsubscribePosts = null; 
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    loginContainer.classList.add('hidden');
-                    appContainer.classList.remove('hidden');
+                    currentUserId = user.uid;
                     initializeAppUI(user);
 
-                    // Firestore 실시간 리스너 설정
-                    const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+                    // Firestore 실시간 리스너 설정 (*** MODIFIED ***)
+                    const postsQuery = query(collection(db, postsCollectionPath), orderBy("createdAt", "desc"));
                     unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
                         posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         renderPosts();
@@ -549,8 +579,10 @@
                     });
 
                 } else {
-                    loginContainer.classList.remove('hidden');
-                    appContainer.classList.add('hidden');
+                    currentUserId = null;
+                    // (*** MODIFIED ***) 로그아웃 시 앱 컨테이너 숨기지 않고, 에러 메시지 표시
+                    errorMessage.textContent = '로그아웃되었습니다. 다시 로그인하려면 새로고침하세요.';
+                    errorModal.classList.remove('hidden');
                     
                     // 로그아웃 시 리스너 해제 및 로컬 데이터 초기화
                     if (unsubscribePosts) {
@@ -562,6 +594,10 @@
                     activeSubject = '전체';
                 }
             });
+
+            // --- (*** NEW ***) 앱 시작 시 자동 인증 ---
+            authenticateUser();
+
         });
     </script>
 </body>
