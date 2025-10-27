@@ -67,7 +67,7 @@
 
         <nav class="bg-white border-b sticky top-0 z-10">
             <div id="subject-selector" class="flex space-x-4 p-3 overflow-x-auto no-scrollbar whitespace-nowrap">
-            </div>
+                </div>
         </nav>
 
         <main id="feed" class="flex-1 overflow-y-auto feed-container bg-gray-50">
@@ -88,11 +88,11 @@
                 <input type="text" id="post-title" placeholder="제목을 입력하세요" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required>
                 <textarea id="post-content" placeholder="궁금한 내용을 적어주세요..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 h-40 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required></textarea>
                 <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                        <label for="post-image" class="cursor-pointer text-blue-600 font-medium hover:text-blue-700">
-                            <i class="fa-solid fa-camera mr-2"></i> 사진 첨부
-                        </label>
-                        <input type="file" id="post-image" class="hidden" accept="image/*">
-                        <span id="image-preview" class="text-sm text-gray-500"></span>
+                     <label for="post-image" class="cursor-pointer text-blue-600 font-medium hover:text-blue-700">
+                        <i class="fa-solid fa-camera mr-2"></i> 사진 첨부
+                    </label>
+                    <input type="file" id="post-image" class="hidden" accept="image/*">
+                    <span id="image-preview" class="text-sm text-gray-500"></span>
                 </div>
                 <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg mt-6 hover:bg-blue-700 transition-colors">게시하기</button>
             </form>
@@ -125,6 +125,26 @@
         </div>
     </div>
 
+    <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-0 relative animate-scale-up flex flex-col h-[80vh]">
+            <div class="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
+                <h2 class="text-xl font-bold text-gray-800">댓글</h2>
+                <button id="close-comment-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+                    <i class="fa-solid fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="comment-list" class="flex-1 overflow-y-auto p-4 space-y-4">
+                </div>
+            <form id="comment-form" class="p-4 border-t bg-gray-50 flex items-center sticky bottom-0 bg-white rounded-b-2xl">
+                <input type="hidden" id="comment-post-id">
+                <input type="text" id="comment-input" placeholder="댓글을 입력하세요..." class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required>
+                <button type="submit" class="ml-3 px-5 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <div id="error-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative text-center animate-scale-up">
             <div class="flex justify-center items-center mx-auto w-12 h-12 rounded-full bg-red-100 mb-4">
@@ -140,9 +160,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, increment, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
-        // [제거] Firebase Storage 모듈 임포트 제거
-        // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         document.addEventListener('DOMContentLoaded', () => {
             // --- Firebase 설정 ---
@@ -150,7 +167,7 @@
                 apiKey: "AIzaSyBeTzTZX7mRUAI-ePgV46hmaRPZvlsdFyQ",
                 authDomain: "wasted-51dd3.firebaseapp.com",
                 projectId: "wasted-51dd3",
-                storageBucket: "wasted-51dd3.firebasestorage.app", // 이 값은 지금 사용되지 않지만, config 객체에 두어도 무방합니다.
+                storageBucket: "wasted-51dd3.firebasestorage.app",
                 messagingSenderId: "227273066378",
                 appId: "1:227273066378:web:2927cb389f2154e4386a73",
                 measurementId: "G-PQ9HRJLGMQ"
@@ -160,10 +177,6 @@
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
             const db = getFirestore(app);
-            
-            // [제거] Firebase Storage 초기화 제거
-            // const storage = getStorage(app); 
-            
             const provider = new GoogleAuthProvider();
             
             // --- 데이터 ---
@@ -172,7 +185,6 @@
             let likedPosts = new Set(); // 현재 세션에서 '하트'를 누른 게시물 ID 저장
             
             // --- DOM 요소 ---
-            // (DOM 요소 선택자는 원본과 동일)
             const loginContainer = document.getElementById('login-container');
             const appContainer = document.getElementById('app-container');
             const loginBtn = document.getElementById('login-btn');
@@ -199,6 +211,15 @@
             const totalPosts = document.getElementById('total-posts');
             const totalComments = document.getElementById('total-comments');
 
+            // (*** NEW ***) 댓글 모달 DOM 요소
+            const commentModal = document.getElementById('comment-modal');
+            const closeCommentModalBtn = document.getElementById('close-comment-modal');
+            const commentList = document.getElementById('comment-list');
+            const commentForm = document.getElementById('comment-form');
+            const commentPostIdInput = document.getElementById('comment-post-id');
+            const commentInput = document.getElementById('comment-input');
+
+
             let activeSubject = '전체';
             
             // --- 앱 초기화 (로그인 성공 시 호출) ---
@@ -210,7 +231,6 @@
             }
 
             // --- 과목 선택창 드래그 스크롤 기능 ---
-            // (원본과 동일)
             let isDown = false;
             let startX;
             let scrollLeft;
@@ -235,7 +255,6 @@
 
             // --- 렌더링 함수 ---
             function renderSubjects() {
-                // (원본과 동일)
                 subjectSelector.innerHTML = '';
                 subjects.forEach(subject => {
                     const button = document.createElement('button');
@@ -254,7 +273,6 @@
             }
 
             function renderPosts() {
-                // (원본과 동일)
                 feed.innerHTML = '';
                 const filteredPosts = activeSubject === '전체' ? posts : posts.filter(p => p.subject === activeSubject);
                 
@@ -263,10 +281,11 @@
                     return;
                 }
 
-                filteredPosts.forEach(post => {
+                filteredPosts.forEach(post => { // 순서를 DB에서 정렬하므로 reverse() 제거
                     const postElement = document.createElement('div');
                     postElement.className = 'feed-item h-full flex-shrink-0 bg-white border-b flex flex-col p-4';
                     
+                    // 현재 사용자가 이 게시물에 하트를 눌렀는지 확인
                     const isLiked = likedPosts.has(post.id);
 
                     postElement.innerHTML = `
@@ -280,14 +299,14 @@
                         <div class="flex-1 overflow-y-auto no-scrollbar">
                             <h3 class="text-lg font-bold mb-2 text-gray-900">${post.title}</h3>
                             <p class="text-gray-700 mb-4 whitespace-pre-wrap">${post.content}</p>
-                            ${post.image ? `<img src="${post.image}" alt="post image" class="rounded-lg w-full object-cover mb-4 max-h-96">` : ''}
+                            ${post.image ? `<img src="${post.image}" alt="post image" class="rounded-lg w-full object-cover mb-4">` : ''}
                         </div>
                         <div class="flex items-center space-x-6 pt-3 mt-auto">
                             <button class="flex items-center space-x-1 text-gray-600 hover:text-red-500 transition-colors" onclick="toggleHeart(this, '${post.id}')">
                                 <i class="fa-${isLiked ? 'solid text-red-500' : 'regular'} fa-heart text-xl"></i>
                                 <span class="font-semibold text-sm">${post.hearts}</span>
                             </button>
-                            <button class="flex items-center space-x-1 text-gray-600 hover:text-blue-500 transition-colors">
+                            <button class="flex items-center space-x-1 text-gray-600 hover:text-blue-500 transition-colors" onclick="openComments('${post.id}')">
                                 <i class="fa-regular fa-comment text-xl"></i>
                                 <span class="font-semibold text-sm">${post.comments}</span>
                             </button>
@@ -298,7 +317,6 @@
             }
 
             // --- 인증 관련 함수 ---
-            // (원본과 동일)
             const handleLogin = async () => {
                 try {
                     await signInWithPopup(auth, provider);
@@ -318,7 +336,6 @@
             };
 
             // --- 이벤트 리스너 ---
-            // (대부분 원본과 동일)
             loginBtn.addEventListener('click', handleLogin);
             logoutBtn.addEventListener('click', handleLogout);
             createPostBtn.addEventListener('click', () => postModal.classList.remove('hidden'));
@@ -329,15 +346,19 @@
                 const currentUser = auth.currentUser;
                 if (!currentUser) return;
 
+                // 실시간 데이터를 기반으로 통계 계산
                 const myPosts = posts.filter(p => p.userId === currentUser.uid);
                 const totalMyPosts = myPosts.length;
                 const totalMyHearts = myPosts.reduce((sum, post) => sum + (post.hearts || 0), 0);
+                
+                // (*** MODIFIED ***) - 내 게시물의 댓글 수 총합 계산
+                const totalMyComments = myPosts.reduce((sum, post) => sum + (post.comments || 0), 0);
                 
                 profileModalUserImg.src = currentUser.photoURL;
                 profileModalUserId.textContent = currentUser.displayName;
                 totalHearts.textContent = totalMyHearts;
                 totalPosts.textContent = totalMyPosts;
-                totalComments.textContent = 0; 
+                totalComments.textContent = totalMyComments; // (*** MODIFIED ***)
                 profileModal.classList.remove('hidden');
             });
             closeProfileModalBtn.addEventListener('click', () => profileModal.classList.add('hidden'));
@@ -349,126 +370,166 @@
                 imagePreview.textContent = postImageInput.files.length > 0 ? postImageInput.files[0].name : '';
             });
 
-            // [수정] postForm 이벤트 리스너 전체 수정 (자체 서버 업로드 로직으로 변경)
             postForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const currentUser = auth.currentUser;
                 if (!currentUser) return;
 
-                const submitButton = postForm.querySelector('button[type="submit"]');
-                const title = document.getElementById('post-title').value;
-                const content = document.getElementById('post-content').value;
-                const file = postImageInput.files[0];
-                let imageUrl = null;
+                const newPostData = {
+                    subject: activeSubject === '전체' ? '기타' : activeSubject,
+                    user: currentUser.displayName,
+                    userImg: currentUser.photoURL,
+                    userId: currentUser.uid,
+                    title: document.getElementById('post-title').value,
+                    content: document.getElementById('post-content').value,
+                    image: null, // 실제 이미지 저장은 Firebase Storage 필요 (추후 구현)
+                    hearts: 0,
+                    comments: 0,
+                    createdAt: serverTimestamp()
+                };
                 
-                // (!!!) 여기에 실제 운영 서버의 업로드 엔드포인트 URL을 입력해야 합니다.
-                const UPLOAD_SERVER_URL = 'https://your-server-domain.com/upload'; 
-
-                // 1. 버튼 비활성화 및 로딩 상태 표시
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> 게시 중...';
-
                 try {
-                    // 2. 이미지 업로드 (파일이 있는 경우) - [수정] Firebase Storage 대신 fetch 사용
-                    if (file) {
-                        console.log('자체 서버로 이미지 업로드 시작...');
-                        const formData = new FormData();
-                        // 'image'는 서버에서 받을 때 사용할 key입니다. (예: Express/multer의 req.file('image'))
-                        formData.append('image', file); 
-
-                        const response = await fetch(UPLOAD_SERVER_URL, {
-                            method: 'POST',
-                            body: formData
-                            // FormData를 사용하면 Content-Type 헤더는 브라우저가 자동으로 설정합니다.
-                        });
-
-                        if (!response.ok) {
-                            // 서버에서 오류 응답을 보냈을 때
-                            throw new Error(`서버 업로드 실패: ${response.statusText}`);
-                        }
-
-                        // 서버는 { "imageUrl": "..." } 형태의 JSON을 반환한다고 가정합니다.
-                        const result = await response.json(); 
-
-                        if (!result.imageUrl) {
-                            // 서버 응답은 성공(200 OK)했으나, 예상한 imageUrl 필드가 없을 때
-                            throw new Error('서버 응답에 imageUrl이 없습니다.');
-                        }
-
-                        imageUrl = result.imageUrl; // 서버에서 받은 URL을 변수에 할당
-                        console.log('서버 업로드 성공, URL:', imageUrl);
-                    }
-
-                    // 3. Firestore에 저장할 데이터 객체 생성
-                    const newPostData = {
-                        subject: activeSubject === '전체' ? '기타' : activeSubject,
-                        user: currentUser.displayName,
-                        userImg: currentUser.photoURL,
-                        userId: currentUser.uid,
-                        title: title,
-                        content: content,
-                        image: imageUrl, // [수정] 자체 서버에서 받은 이미지 URL 저장
-                        hearts: 0,
-                        comments: 0,
-                        createdAt: serverTimestamp()
-                    };
-
-                    // 4. Firestore에 데이터 추가
                     await addDoc(collection(db, "posts"), newPostData);
-                    
-                    // 5. 성공 시 폼 초기화 및 모달 닫기
                     postModal.classList.add('hidden');
                     postForm.reset();
                     imagePreview.textContent = '';
                 } catch (error) {
-                    // 6. 오류 발생 시 (네트워크 오류, 서버 업로드 실패, Firestore 저장 실패 등)
                     console.error("게시물 추가 오류: ", error);
-                    errorMessage.textContent = '게시물을 저장하는 데 실패했습니다. (오류: ' + error.message + ')';
+                    errorMessage.textContent = '게시물을 저장하는 데 실패했습니다.';
                     errorModal.classList.remove('hidden');
-                } finally {
-                    // 7. 성공/실패 여부와 관계없이 버튼 원상 복구
-                    submitButton.disabled = false;
-                    submitButton.textContent = '게시하기';
                 }
             });
 
+            // (*** NEW ***) 댓글 모달 이벤트 리스너
+            closeCommentModalBtn.addEventListener('click', () => closeAndClearComments());
+            commentModal.addEventListener('click', (e) => { if (e.target === commentModal) closeAndClearComments(); });
+            commentForm.addEventListener('submit', handleCommentSubmit);
+
+
             // --- 글로벌 함수 ---
-            // (원본과 동일)
             window.toggleHeart = async (button, postId) => {
                 if(!auth.currentUser) return;
                 const postRef = doc(db, "posts", postId);
-                
-                const post = posts.find(p => p.id === postId);
-                if (!post) return;
-
-                const icon = button.querySelector('i');
-                const span = button.querySelector('span');
 
                 if (likedPosts.has(postId)) {
-                    // --- 좋아요 취소 ---
-                    likedPosts.delete(postId); 
-                    
-                    post.hearts -= 1;
-                    icon.classList.remove('fa-solid', 'text-red-500');
-                    icon.classList.add('fa-regular');
-                    span.textContent = post.hearts;
-                    
+                    likedPosts.delete(postId); // 로컬 상태에서 제거
                     await updateDoc(postRef, { hearts: increment(-1) });
                 } else {
-                    // --- 좋아요 누르기 ---
-                    likedPosts.add(postId); 
-                    
-                    post.hearts += 1;
-                    icon.classList.remove('fa-regular');
-                    icon.classList.add('fa-solid', 'text-red-500');
-                    span.textContent = post.hearts;
-                    
+                    likedPosts.add(postId); // 로컬 상태에 추가
                     await updateDoc(postRef, { hearts: increment(1) });
                 }
+                // renderPosts(); // 실시간 리스너(onSnapshot)가 자동 업데이트하므로 수동 render 호출은 불필요
             };
 
+            // (*** NEW ***) 댓글 관련 글로벌 함수
+            let unsubscribeComments = null; // 댓글 리스너 해제용
+
+            window.openComments = async (postId) => {
+                if (!auth.currentUser) return;
+
+                commentPostIdInput.value = postId;
+                commentModal.classList.remove('hidden');
+
+                // 기존 리스너가 있다면 해제
+                if (unsubscribeComments) {
+                    unsubscribeComments();
+                }
+
+                // 새 리스너 설정: posts/{postId}/comments 컬렉션을 createdAt 오름차순으로 구독
+                const commentsQuery = query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc"));
+                unsubscribeComments = onSnapshot(commentsQuery, (snapshot) => {
+                    commentList.innerHTML = ''; // 목록 비우기
+                    if (snapshot.empty) {
+                        commentList.innerHTML = `<p class="text-center text-gray-500 p-4">첫 댓글을 작성해보세요.</p>`;
+                        return;
+                    }
+                    snapshot.forEach(doc => {
+                        const comment = doc.data();
+                        const commentEl = document.createElement('div');
+                        commentEl.className = 'flex items-start space-x-3';
+                        
+                        // 타임스탬프 포맷팅
+                        const timestamp = comment.createdAt?.toDate().toLocaleString('ko-KR', { 
+                            timeZone: 'Asia/Seoul', 
+                            year: 'numeric', 
+                            month: '2-digit', 
+                            day: '2-digit', 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: false
+                        }) || '방금 전';
+                        
+                        commentEl.innerHTML = `
+                            <img src="${comment.userImg}" alt="user" class="w-8 h-8 rounded-full mt-1">
+                            <div class="flex-1 bg-gray-100 p-3 rounded-lg">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-bold text-sm text-gray-800">${comment.user}</span>
+                                    <span class="text-xs text-gray-500">${timestamp}</span>
+                                </div>
+                                <p class="text-sm text-gray-700 whitespace-pre-wrap">${comment.text}</p>
+                            </div>
+                        `;
+                        commentList.appendChild(commentEl);
+                    });
+                    // 새 댓글 추가 시 스크롤 맨 아래로
+                    commentList.scrollTop = commentList.scrollHeight;
+                }, (error) => {
+                    console.error("댓글 로딩 오류:", error);
+                    errorMessage.textContent = '댓글을 불러오는 데 실패했습니다.';
+                    errorModal.classList.remove('hidden');
+                });
+            };
+
+            // (*** NEW ***) 댓글 모달 닫기 (리스너 해제 포함)
+            function closeAndClearComments() {
+                if (unsubscribeComments) {
+                    unsubscribeComments(); // 리스너 해제 (중요!)
+                    unsubscribeComments = null;
+                }
+                commentModal.classList.add('hidden');
+                commentList.innerHTML = '';
+                commentForm.reset();
+            }
+
+            // (*** NEW ***) 댓글 제출 핸들러
+            async function handleCommentSubmit(e) {
+                e.preventDefault();
+                const currentUser = auth.currentUser;
+                const postId = commentPostIdInput.value;
+                const commentText = commentInput.value.trim();
+
+                if (!currentUser || !postId || commentText === '') return;
+
+                // 1. 새 댓글 데이터
+                const newCommentData = {
+                    text: commentText,
+                    user: currentUser.displayName,
+                    userImg: currentUser.photoURL,
+                    userId: currentUser.uid,
+                    createdAt: serverTimestamp()
+                };
+                
+                // 2. 원본 게시물 문서 참조
+                const postRef = doc(db, "posts", postId);
+
+                try {
+                    // 1. 'comments' 서브컬렉션에 새 댓글 추가
+                    await addDoc(collection(db, "posts", postId, "comments"), newCommentData);
+                    
+                    // 2. 'posts' 문서의 'comments' 카운트 1 증가
+                    await updateDoc(postRef, { comments: increment(1) });
+                    
+                    // 폼 리셋
+                    commentForm.reset();
+                } catch (error) {
+                    console.error("댓글 작성 오류:", error);
+                    errorMessage.textContent = '댓글을 작성하는 데 실패했습니다.';
+                    errorModal.classList.remove('hidden');
+                }
+            }
+
+
             // --- 인증 상태 변경 감지 및 데이터 동기화 ---
-            // (원본과 동일)
             let unsubscribePosts = null; 
             onAuthStateChanged(auth, (user) => {
                 if (user) {
@@ -476,6 +537,7 @@
                     appContainer.classList.remove('hidden');
                     initializeAppUI(user);
 
+                    // Firestore 실시간 리스너 설정
                     const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"));
                     unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
                         posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -490,9 +552,11 @@
                     loginContainer.classList.remove('hidden');
                     appContainer.classList.add('hidden');
                     
+                    // 로그아웃 시 리스너 해제 및 로컬 데이터 초기화
                     if (unsubscribePosts) {
                         unsubscribePosts();
                     }
+                    closeAndClearComments(); // (*** MODIFIED ***) - 댓글 모달도 닫기
                     posts = [];
                     likedPosts.clear();
                     activeSubject = '전체';
